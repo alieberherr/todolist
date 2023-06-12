@@ -11,7 +11,7 @@ def init(second_frame):
         df = pd.read_csv("todos.csv")
         # loop through the file and create instances of items
         for i,row in df.iterrows():
-            Item = panel.todoitem(row["title"],row["added"],row["due"],row["completed"],row["priority"],second_frame)
+            Item = panel.todoitem(row["title"],row["added"],row["due"],row["completed"],row["priority"],row["progress"],second_frame)
             items.append(Item)
     Panel = panel.panel(items)
     return Panel
@@ -19,7 +19,7 @@ def init(second_frame):
 def run():
     root = tk.Tk()
     root.title("TODO")
-    root.geometry("500x400")
+    root.geometry("600x400")
 
     # create a main frame
     main_frame = tk.Frame(root)
@@ -54,10 +54,10 @@ def run():
     def close():
         # write to file
         f = open("todos.csv",'w')
-        f.write("title,added,due,completed,priority\n")
+        f.write("title,added,due,completed,priority,progress\n")
         for i in range(len(Panel.items)):
             Item = Panel.items[i]
-            f.write("%s,%s,%s,%s,%s\n"%(Item.title,Item.added,Item.due,Item.completed,Item.priority))
+            f.write("%s,%s,%s,%s,%s,%s\n"%(Item.title,Item.added,Item.due,Item.completed,Item.priority,Item.slider.get()))
         f.close()
         root.destroy()
     buttonADD = tk.Button(second_frame,text="+",padx=0,pady=0,command=add).grid(row=0,column=1)
