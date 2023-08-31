@@ -20,7 +20,8 @@ class panel:
             else:
                 bg = '#32d96c'
             # color the row
-            t0 = titleframe = tk.Frame(root, bg=bg)
+            titleframe = tk.Frame(root, bg=bg)
+            t0 = titleframe
             titleframe.grid(row=i+1,column=1,columnspan=3, sticky='news')
             # add the details about the item
             t1 = tk.Label(root,text=self.items[i].title,justify="left",anchor="w",bg=bg)
@@ -62,7 +63,7 @@ class panel:
         e1 = tk.Entry(addroot)
         e2 = tk.Entry(addroot)
         e3 = tk.Entry(addroot)
-        e4 = tk.Entry(addroot)
+        e4 = tk.Text(addroot,height=10,width=30)
         e1.grid(row=0, column=1)
         e2.grid(row=1, column=1)
         e3.grid(row=2, column=1)
@@ -75,7 +76,7 @@ class panel:
             # added and completed are set automatically
             added = datetime.now().strftime("%d/%m/%Y")
             completed = False
-            Item = todoitem(title,added,due,completed,priority,0,root,details)
+            Item = todoitem(title,added,due,completed,priority,0,details,root)
             Item.add_panel(self)
             # insert the new item at the right place
             iloc = 0
@@ -90,7 +91,7 @@ class panel:
                 i.destroy()
             self.displayitems(root)
         bENTER = tk.Button(addroot,text="Create",padx=0,pady=0,command=create)
-        bENTER.place(x=150,y=150)
+        bENTER.place(x=150,y=250)
         tk.mainloop()
 
 class todoitem:
