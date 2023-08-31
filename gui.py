@@ -3,6 +3,7 @@ from tkinter import ttk
 import os
 import panel
 import pandas as pd
+import numpy as np
 
 def init(second_frame):
     # read existing data from file
@@ -11,7 +12,11 @@ def init(second_frame):
         df = pd.read_csv("todos.csv")
         # loop through the file and create instances of items
         for i,row in df.iterrows():
-            Item = panel.todoitem(row["title"],row["added"],row["due"],row["completed"],row["priority"],row["progress"],second_frame)
+            if type(row["details"]) == float:
+                row["details"] = ""
+            else:
+                row["details"] = row["details"].replace("\\n","\n")
+            Item = panel.todoitem(row["title"],row["added"],row["due"],row["completed"],row["priority"],row["progress"],row["details"],second_frame)
             items.append(Item)
     Panel = panel.panel(items)
     return Panel
@@ -19,7 +24,7 @@ def init(second_frame):
 def run():
     root = tk.Tk()
     root.title("TODO")
-    root.geometry("600x400")
+    root.geometry("800x400")
 
     # create a main frame
     main_frame = tk.Frame(root)
@@ -54,10 +59,11 @@ def run():
     def close():
         # write to file
         f = open("todos.csv",'w')
-        f.write("title,added,due,completed,priority,progress\n")
+        f.write("title,added,due,completed,priority,progress,details\n")
         for i in range(len(Panel.items)):
             Item = Panel.items[i]
-            f.write("%s,%s,%s,%s,%s,%s\n"%(Item.title,Item.added,Item.due,Item.completed,Item.priority,Item.slider.get()))
+            Item.details = Item.details.replace("\n","\\n")
+            f.write("%s,%s,%s,%s,%s,%s,%s\n"%(Item.title,Item.added,Item.due,Item.completed,Item.priority,Item.slider.get(),Item.details))
         f.close()
         root.destroy()
     buttonADD = tk.Button(second_frame,text="+",padx=0,pady=0,command=add).grid(row=0,column=1)

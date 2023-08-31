@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from datetime import datetime
 
 class panel:
@@ -20,8 +21,8 @@ class panel:
                 bg = '#32d96c'
             # color the row
             t0 = titleframe = tk.Frame(root, bg=bg)
-            titleframe.grid(row=i+1,column=0,columnspan=self.ncols, sticky='news')
-            # add the new text
+            titleframe.grid(row=i+1,column=1,columnspan=3, sticky='news')
+            # add the details about the item
             t1 = tk.Label(root,text=self.items[i].title,justify="left",anchor="w",bg=bg)
             t2 = tk.Label(root,text=self.items[i].due,justify="left",anchor="w",bg=bg)
             t3 = tk.Label(root,text=self.items[i].priority,justify="left",anchor="w",bg=bg)
@@ -32,16 +33,21 @@ class panel:
             t1.grid(sticky=tk.W,row=i+1,column=1)
             t2.grid(sticky=tk.W,row=i+1,column=2)
             t3.grid(sticky=tk.W,row=i+1,column=3)
+            # add slider
+            s1 = ttk.Scale(root, from_=0, to=100, orient=tk.HORIZONTAL,value=self.items[i].progress)
+            self.items[i].add_slider(s1)
+            s1.grid(sticky=tk.W,row=i+1,column=4)
+            self.objects.append(s1)
             # add the buttons
-            b1 = buttonDONE = tk.Button(root,text="Done",padx=0,pady=0,command=self.items[i].done)
-            b2 = buttonEDIT = tk.Button(root,text="Edit",padx=0,pady=0,command=self.items[i].edit)
-            b3 = buttonDEL = tk.Button(root,text="Delete",padx=0,pady=0,command=self.items[i].delete)
+            buttonDONE = tk.Button(root,text="Done",padx=0,pady=0,command=self.items[i].done,bg=bg)
+            buttonEDIT = tk.Button(root,text="Edit",padx=0,pady=0,command=self.items[i].edit,bg=bg)
+            buttonDEL = tk.Button(root,text="Delete",padx=0,pady=0,command=self.items[i].delete,bg=bg)
             buttonDONE.grid(row=i+1,column=0)
-            buttonEDIT.grid(row=i+1,column=4)
-            buttonDEL.grid(row=i+1,column=5)
-            self.objects.append(b1)
-            self.objects.append(b2)
-            self.objects.append(b3)
+            buttonEDIT.grid(row=i+1,column=5)
+            buttonDEL.grid(row=i+1,column=6)
+            self.objects.append(buttonDONE)
+            self.objects.append(buttonEDIT)
+            self.objects.append(buttonDEL)
 
     def additem(self,root):
         # open dialogue window to create item
@@ -51,21 +57,25 @@ class panel:
         # enter title, due date, priority: create fields then read from entries
         tk.Label(addroot, text="Title", justify="left", anchor="w").grid(sticky = tk.W, row=0)
         tk.Label(addroot, text="Due (dd/mm/yyyy)", justify="left", anchor="w").grid(sticky = tk.W, row=1)
-        tk.Label(addroot, text="Priority (Low/Medium/High):", justify="left", anchor="w").grid(sticky = tk.W, row=2)
+        tk.Label(addroot, text="Priority (Low/Medium/High)", justify="left", anchor="w").grid(sticky = tk.W, row=2)
+        tk.Label(addroot, text="Details", justify="left", anchor="w").grid(sticky = tk.W, row=3)
         e1 = tk.Entry(addroot)
         e2 = tk.Entry(addroot)
         e3 = tk.Entry(addroot)
+        e4 = tk.Entry(addroot)
         e1.grid(row=0, column=1)
         e2.grid(row=1, column=1)
         e3.grid(row=2, column=1)
+        e4.grid(row=3, column=1)
         def create():
             title = e1.get()
             due = e2.get()
             priority = e3.get()
+            details = e4.get("1.0", tk.END)
             # added and completed are set automatically
             added = datetime.now().strftime("%d/%m/%Y")
             completed = False
-            Item = todoitem(title,added,due,completed,priority,root)
+            Item = todoitem(title,added,due,completed,priority,0,root,details)
             Item.add_panel(self)
             # insert the new item at the right place
             iloc = 0
@@ -85,19 +95,25 @@ class panel:
 
 class todoitem:
 
-    def __init__(self,title,added,due,completed,priority,root):
+    def __init__(self,title,added,due,completed,priority,progress,details,root):
         self.title = title
         self.added = added
         self.due = due
         self.completed = completed
         self.priority = priority
         self.root = root
+        self.progress = progress
+        self.details = details
 
     def add_panel(self,panel):
         self.panel = panel
 
+    def add_slider(self,slider):
+        self.slider = slider
+
     def done(self):
         self.completed = True
+        self.panel.items.remove(self)
         for i in self.panel.objects:
             i.destroy()
         self.panel.displayitems(self.root)
@@ -118,20 +134,24 @@ class todoitem:
         tk.Label(addroot, text="Title", justify="left", anchor="w").grid(sticky = tk.W, row=0)
         tk.Label(addroot, text="Due (dd/mm/yyyy)", justify="left", anchor="w").grid(sticky = tk.W, row=1)
         tk.Label(addroot, text="Priority (Low/Medium/High):", justify="left", anchor="w").grid(sticky = tk.W, row=2)
+        # tk.Label(addroot, text="Details", justify="left", anchor="w").grid(sticky = tk.W, row=3)
         e1 = tk.Entry(addroot)
         e2 = tk.Entry(addroot)
         e3 = tk.Entry(addroot)
+        e4 = tk.Text(addroot,height=10,width=30)
         e1.insert(0,self.title)
         e2.insert(0,self.due)
         e3.insert(0,self.priority)
+        e4.insert("1.0",self.details)
         e1.grid(row=0, column=1)
         e2.grid(row=1, column=1)
         e3.grid(row=2, column=1)
+        e4.grid(row=3, column=1)
 
         # read new entries and update position in list
         def create():
             changed = False
-            if (e1.get() != self.title or e2.get() != self.due or e3.get() != self.priority):
+            if (e1.get() != self.title or e2.get() != self.due or e3.get() != self.priority or e4.get("1.0", tk.END) != self.details):
                 changed = True
             if changed:
                 # move the item to its new position
@@ -140,6 +160,7 @@ class todoitem:
                 self.title = e1.get()
                 self.due = e2.get()
                 self.priority = e3.get()
+                self.details = e4.get("1.0", tk.END)
                 # insert the new item at the right place
                 iloc = 0
                 for i in range(len(self.panel.items)):
@@ -155,13 +176,13 @@ class todoitem:
 
         # button "create"
         bENTER = tk.Button(addroot,text="Create",padx=0,pady=0,command=create)
-        bENTER.place(x=150,y=150)
+        bENTER.place(x=150,y=250)
         # run
         addroot.mainloop()
 
 
     def __eq__(self,other):
-        return ((self.title,self.added,self.due,self.completed,self.priority)) == ((other.title,other.added,other.due,other.completed,other.priority))
+        return ((self.title,self.added,self.due,self.completed,self.priority,self.details)) == ((other.title,other.added,other.due,other.completed,other.priority,other.details))
     
     def __gt__(self,other):
         if (self.priority == other.priority):
